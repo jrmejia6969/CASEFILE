@@ -217,17 +217,13 @@ function verdict(combinedScore) {
 }
 
 // ---------- storage helpers ----------
-// NOTE: replace this with your own Firebase Realtime Database URL before
-// deploying. Free to create at https://console.firebase.google.com —
-// create a project, enable "Realtime Database", start in test mode, and
-// copy the URL it gives you (looks like https://YOUR-PROJECT-default-rtdb.firebaseio.com)
-const FIREBASE_DB_URL = "https://YOUR-PROJECT-ID-default-rtdb.firebaseio.com";
-
+// Backed by the /api/reports Netlify Function, which reads/writes the
+// shared reports table in Netlify Database.
 async function loadDB() {
   try {
-    const res = await fetch(`${FIREBASE_DB_URL}/reports.json`);
+    const res = await fetch("/api/reports");
     const data = await res.json();
-    return data ? Object.values(data) : [];
+    return Array.isArray(data) ? data : [];
   } catch (e) {
     console.error("load failed", e);
     return [];
@@ -236,7 +232,7 @@ async function loadDB() {
 
 async function saveReport(entry) {
   try {
-    await fetch(`${FIREBASE_DB_URL}/reports.json`, {
+    await fetch("/api/reports", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(entry),
@@ -302,7 +298,6 @@ export default function App() {
       name: reportName.trim(),
       platform: reportPlatform.trim(),
       note: reportNote.trim(),
-      ts: Date.now(),
     });
     const db = await loadDB();
     setDbCount(db.length);
